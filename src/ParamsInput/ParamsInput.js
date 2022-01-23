@@ -72,8 +72,11 @@ const ParamsInput = ({ onChange }) => {
 
   useEffect(() => {
     try {
-      onChange(inputValues.map((val) => eval(val)));
-    } catch (e) {}
+      const inputValuesPrepared = inputValues.map((val) => eval(val));
+      onChange(inputValuesPrepared);
+    } catch (e) {
+      onChange([]);
+    }
   }, [inputValues]);
 
   const parts = flatten(

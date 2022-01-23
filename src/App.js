@@ -2,7 +2,7 @@ import './App.css';
 import { useState, useEffect } from 'react';
 import Input from '@mui/material/Input';
 import Grid from '@mui/material/Grid';
-import { update, flatten, equals } from 'ramda';
+import { remove, flatten, equals } from 'ramda';
 import lodash, { isFunction } from 'lodash';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
@@ -15,6 +15,10 @@ import RAMDA from './packages/RAMDA';
 import MATH from './packages/MATH';
 
 const LODASH = lodash;
+
+const deepCopy = (obj) => {
+  return JSON.parse(JSON.stringify(obj));
+};
 
 const PACKAGES = [
   {
@@ -37,7 +41,7 @@ const PACKAGES = [
 
 function App() {
   const [funcParams, setFuncParams] = useState(['']);
-  const [funcResult, setFuncResult] = useState('');
+  const [funcResult, setFuncResult] = useState(undefined);
   const [searchResults, setSearchResults] = useState(null);
 
   useEffect(() => {
@@ -54,20 +58,26 @@ function App() {
             try {
               if (!isFunction(pack.funcs[key])) return false;
 
-              const calculatedFuncResult = pack.funcs[key](...funcParams);
-              const calculatedFuncResultWithoutLastParam = pack.funcs[key](
-                ...funcParams.slice(0, -1)
+              const calculatedFuncResult = pack.funcs[key](
+                ...deepCopy(funcParams)
               );
-              const evaluatedFuncResult = eval(funcResult);
+              const calculatedFuncResultWithoutLastParam =
+                funcParams.length > 0
+                  ? pack.funcs[key](
+                      ...remove(funcParams.length - 1, 1, funcParams)
+                    )
+                  : [];
 
-              return (
-                equals(calculatedFuncResult, evaluatedFuncResult) &&
-                evaluatedFuncResult !== undefined &&
-                !equals(
+              const isMatching =
+                equals(calculatedFuncResult, funcResult) &&
+                funcResult !== undefined &&
+                (!equals(
                   calculatedFuncResult,
                   calculatedFuncResultWithoutLastParam
-                )
-              );
+                ) ||
+                  funcParams.length === 0);
+
+              return isMatching;
             } catch (e) {
               return false;
             }
@@ -88,7 +98,7 @@ function App() {
             width="149"
             height="149"
             src="https://github.blog/wp-content/uploads/2008/12/forkme_left_darkblue_121621.png?resize=149%2C149"
-            class="attachment-full size-full"
+            className="attachment-full size-full"
             alt="Fork me on GitHub"
             data-recalc-dims="1"
           />
@@ -118,10 +128,13 @@ function App() {
             ) ={' '}
             <Input
               style={{ fontSize: '2rem' }}
-              value={funcResult}
               onChange={(e) => {
                 const value = e.target.value;
-                setFuncResult(value);
+                try {
+                  setFuncResult(eval(value));
+                } catch (e) {
+                  setFuncResult(undefined);
+                }
               }}
             />
           </div>
@@ -130,9 +143,9 @@ function App() {
       <div className="flex-container">
         <div className="flex-item">
           {searchResults !== null && searchResults.length === 0 && (
-            <Typography>{`No results for f(${funcParams.join(
-              ', '
-            )}) = ${funcResult}`}</Typography>
+            <Typography>{`No results for f(${funcParams
+              .map((param) => JSON.stringify(param))
+              .join(', ')}) = ${JSON.stringify(funcResult)}`}</Typography>
           )}
         </div>
       </div>
