@@ -1,0 +1,9 @@
+.dynamic-input .Mui-focused {
+  width: 200px;
+  background-color: aqua;
+}
+
+.dynamic-input {
+  font-size: 2rem;
+  width: 150px;
+}
