@@ -64,7 +64,7 @@ function App() {
               const calculatedFuncResultWithoutLastParam =
                 funcParams.length > 0
                   ? pack.funcs[key](
-                      ...remove(funcParams.length - 1, 1, funcParams)
+                      ...deepCopy(remove(funcParams.length - 1, 1, funcParams))
                     )
                   : [];
 
@@ -76,6 +76,15 @@ function App() {
                   calculatedFuncResultWithoutLastParam
                 ) ||
                   funcParams.length === 0);
+
+              if (isMatching) {
+                console.log(
+                  funcParams,
+                  `${funcParams
+                    .map((param) => JSON.stringify(param))
+                    .join(',')} => ${calculatedFuncResult}`
+                );
+              }
 
               return isMatching;
             } catch (e) {
@@ -123,6 +132,7 @@ function App() {
             <ParamsInput
               onChange={(value) => {
                 setFuncParams(value);
+                console.log(JSON.parse(JSON.stringify(value)), value);
               }}
             />
             ) ={' '}
